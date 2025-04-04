@@ -1,0 +1,123 @@
+plugins {
+    id 'java'
+}
+
+group = 'com.valhalla.jbother'
+version = '1.0'
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_1_4
+    targetCompatibility = JavaVersion.VERSION_1_4
+}
+
+repositories {
+    flatDir {
+        dirs 'lib'
+    }
+}
+
+dependencies {
+    implementation name: 'smack'
+    implementation name: 'smackx'
+    implementation name: 'idw'
+}
+
+sourceSets {
+    main {
+        java {
+            srcDirs = ['src']
+        }
+        resources {
+            srcDirs = [
+                'src/main/java/images',
+                'src/main/java/translations',
+                'src/main/java/imagethemes',
+                'src/main/java/sounds',
+                'src/main/java' // includes properties files
+            ]
+        }
+    }
+}
+
+tasks.register('prepareBuildDir') {
+    doLast {
+        file('build').mkdirs()
+    }
+}
+
+tasks.register('compileJava', JavaCompile) {
+    dependsOn 'prepareBuildDir'
+    source = sourceSets.main.java
+    destinationDirectory = file('build')
+    options.deprecation = true
+    options.debug = true
+    classpath = files(configurations.implementation)
+}
+
+tasks.register('doc', Javadoc) {
+    destinationDir = file('doc')
+    source = sourceSets.main.java
+    classpath = files(configurations.implementation)
+    options.linkSource = true
+}
+
+tasks.register('clean') {
+    doLast {
+        delete 'doc', 'build', 'JBother.jar', 'JBother.app'
+    }
+}
+
+tasks.register('dist', Jar) {
+    dependsOn 'compileJava'
+    archiveBaseName.set('JBother')
+    destinationDirectory.set(file('.'))
+    from('build') {
+        include '**/*'
+    }
+    manifest {
+        attributes 'Main-Class': 'com.valhalla.jbother.JBother'
+    }
+    doLast {
+        copy {
+            from 'src/main/java/images'
+            into 'build/images'
+        }
+        copy {
+            from 'src/main/java/translations'
+            into 'build'
+        }
+        copy {
+            from 'src/main/java/imagethemes'
+            into 'build/imagethemes'
+        }
+        copy {
+            from 'src/main/java/sounds'
+            into 'build/sounds'
+        }
+        copy {
+            from 'CREDITS'
+            into 'build'
+            rename { 'credits.txt' }
+        }
+        copy {
+            from 'build.number'
+            into 'build'
+            rename { 'buildid.properties' }
+        }
+        copy {
+            from 'src/main/java/defaultsettings.properties'
+            into 'build'
+        }
+        copy {
+            from 'src/main/java/kiosksettings.properties'
+            into 'build'
+        }
+    }
+}
+
+tasks.register('run', JavaExec) {
+    dependsOn 'dist'
+    mainClass.set('com.valhalla.jbother.JBother')
+    classpath = files('JBother.jar')
+    args 'prof', 'notheme'
+}
