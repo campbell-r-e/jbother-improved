@@ -1,0 +1,81 @@
+# === Java & Gradle ===
+
+# Compiled class files
+*.class
+
+# Log files
+*.log
+
+# BlueJ files
+*.ctxt
+
+# Mobile Tools for Java (J2ME)
+.mtj.tmp/
+
+# Package Files #
+*.jar
+*.war
+*.ear
+
+# Gradle
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+out/
+
+# IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# VS Code
+.vscode/
+
+# NetBeans
+nbproject/private/
+build/
+nbbuild/
+dist/
+nbdist/
+.nb-gradle/
+
+# Eclipse
+.settings/
+.project
+.classpath
+bin/
+tmp/
+
+# macOS
+.DS_Store
+
+# Linux
+*~
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Environment files
+.env
+*.keystore
+
+# Backup files
+*.bak
+*.swp
+*.swo
+
+# === Project-specific ===
+
+# Generated JNLP files
+jnlp/
+*.jnlp
+
+# Signed or sensitive keystore
+keystore.bin
+
+# Optional: remove signed JARs if you always rebuild them
+JBother.jar
+JBother.app
