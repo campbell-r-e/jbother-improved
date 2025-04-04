@@ -79,3 +79,11 @@ keystore.bin
 # Optional: remove signed JARs if you always rebuild them
 JBother.jar
 JBother.app
+
+
+problems-report.html
+*.lock
+jobother/.gradle/8.13/fileHashes/fileHashes.lock
+jobother/.gradle/buildOutputCleanup/buildOutputCleanup.lock
+jobother/.gradle/8.13/fileHashes/fileHashes.lock
+jobother/build/reports/problems/problems-report.html

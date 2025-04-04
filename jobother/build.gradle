@@ -39,44 +39,38 @@ sourceSets {
     }
 }
 
-tasks.register('prepareBuildDir') {
+// Configure compile options globally
+tasks.withType(JavaCompile).configureEach {
+    options.deprecation = true
+    options.debug = true
+}
+
+// Clean task
+tasks.named('clean') {
     doLast {
-        file('build').mkdirs()
+        delete 'doc', 'JBother.jar', 'JBother.app'
     }
 }
 
-tasks.register('compileJava', JavaCompile) {
-    dependsOn 'prepareBuildDir'
-    source = sourceSets.main.java
-    destinationDirectory = file('build')
-    options.deprecation = true
-    options.debug = true
-    classpath = files(configurations.implementation)
-}
 
+// Documentation generation
 tasks.register('doc', Javadoc) {
     destinationDir = file('doc')
-    source = sourceSets.main.java
-    classpath = files(configurations.implementation)
+    source = sourceSets.main.allJava
+    classpath = sourceSets.main.compileClasspath
     options.linkSource = true
 }
 
-tasks.register('clean') {
-    doLast {
-        delete 'doc', 'build', 'JBother.jar', 'JBother.app'
-    }
-}
-
+// Distribution JAR
 tasks.register('dist', Jar) {
-    dependsOn 'compileJava'
+    dependsOn 'classes'
     archiveBaseName.set('JBother')
-    destinationDirectory.set(file('.'))
-    from('build') {
-        include '**/*'
-    }
+    destinationDirectory.set(layout.projectDirectory)
+    from(sourceSets.main.output)
     manifest {
         attributes 'Main-Class': 'com.valhalla.jbother.JBother'
     }
+
     doLast {
         copy {
             from 'src/main/java/images'
@@ -115,6 +109,7 @@ tasks.register('dist', Jar) {
     }
 }
 
+// Run the app
 tasks.register('run', JavaExec) {
     dependsOn 'dist'
     mainClass.set('com.valhalla.jbother.JBother')
