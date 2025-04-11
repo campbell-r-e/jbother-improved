@@ -17,15 +17,15 @@ application {
 }
 
 repositories {
-    flatDir {
-        dirs 'lib'
-    }
+    mavenCentral()
+    maven { url "https://maven2.infonode.net/" } // Not required if IDW is local
 }
 
 dependencies {
-    implementation name: 'smack'
-    implementation name: 'smackx'
-    implementation name: 'idw'
+    implementation 'org.igniterealtime.smack:smack:3.1.0'
+    //implementation 'net.infonode:idw:1.6.1' // if you can pull from maven
+    // If not, use local jar:
+    implementation files('lib/idw.jar')
 }
 
 jar {
@@ -37,27 +37,15 @@ jar {
         )
     }
 
-    from('src/main/resources/images') {
-        into 'images'
-    }
-    from('src/main/resources/sounds') {
-        into 'sounds'
-    }
-    from('src/main/resources/imagethemes') {
-        into 'imagethemes'
-    }
-    from('src/main/resources/translations') {
-        into 'translations'
-    }
+    from('src/resources/images') { into 'images' }
+    from('src/resources/sounds') { into 'sounds' }
+    from('src/resources/imagethemes') { into 'imagethemes' }
+    from('src/resources/translations') { into 'translations' }
 
-    from('CREDITS') {
-        rename { 'credits.txt' }
-    }
-    from('build.number') {
-        rename { 'buildid.properties' }
-    }
-    from('src/main/resources/defaultsettings.properties')
-    from('src/main/resources/kiosksettings.properties')
+    from('CREDITS') { rename { 'credits.txt' } }
+    from('build.number') { rename { 'buildid.properties' } }
+    from('src/resources/defaultsettings.properties')
+    from('src/resources/kiosksettings.properties')
 }
 
 tasks.withType(JavaCompile).configureEach {
@@ -65,29 +53,38 @@ tasks.withType(JavaCompile).configureEach {
     options.debug = true
 }
 
-task cleanAll(type: Delete) {
-    delete 'build', 'doc', 'JBother.jar', 'JBother.app'
-}
+tasks.register('fatJar', Jar) {
+    archiveBaseName.set('JBother')
+    archiveClassifier.set('all')
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    includeEmptyDirs = false
+    preserveFileTimestamps = false
 
-task generateJavadoc(type: Javadoc) {
-    destinationDir = file("$buildDir/docs")
-    source = fileTree('src/main/java') {
-        include '**/*.java'
+    manifest {
+        attributes 'Main-Class': application.mainClass
     }
-    classpath = files('lib/smack.jar', 'lib/smackx.jar')
-    options.linkSource = true
+
+    from {
+        configurations.runtimeClasspath.collect {
+            it.isDirectory() ? it : zipTree(it)
+        }
+    }
+
+    with tasks.named("jar").get()
 }
 
 launch4j {
     mainClassName = application.mainClass
     outputDir = "$buildDir/launch4j"
     outfile = 'JBother.exe'
-    //icon = 'src/resources/images/icon.ico' // optional
     jreMinVersion = '1.4.0'
     dontWrapJar = false
-    jar = file("$buildDir/libs/JBother-1.0.jar").absolutePath
 }
 
 tasks.named("createExe").configure {
-    dependsOn(tasks.named("jar"))
+    dependsOn(tasks.named("fatJar"))
+    doFirst {
+        def fatJarFile = tasks.named("fatJar").get().archiveFile.get().asFile
+        project.launch4j.jar = fatJarFile.absolutePath
+    }
 }
