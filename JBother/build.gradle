@@ -1,0 +1,93 @@
+plugins {
+    id 'java'
+    id 'application'
+    id 'edu.sc.seis.launch4j' version '2.5.4'
+}
+
+group = 'com.valhalla'
+version = '1.0'
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+}
+
+application {
+    mainClass = 'com.valhalla.jbother.JBother'
+}
+
+repositories {
+    flatDir {
+        dirs 'lib'
+    }
+}
+
+dependencies {
+    implementation name: 'smack'
+    implementation name: 'smackx'
+    implementation name: 'idw'
+}
+
+jar {
+    archiveBaseName.set("JBother")
+
+    manifest {
+        attributes(
+            'Main-Class': application.mainClass
+        )
+    }
+
+    from('src/main/resources/images') {
+        into 'images'
+    }
+    from('src/main/resources/sounds') {
+        into 'sounds'
+    }
+    from('src/main/resources/imagethemes') {
+        into 'imagethemes'
+    }
+    from('src/main/resources/translations') {
+        into 'translations'
+    }
+
+    from('CREDITS') {
+        rename { 'credits.txt' }
+    }
+    from('build.number') {
+        rename { 'buildid.properties' }
+    }
+    from('src/main/resources/defaultsettings.properties')
+    from('src/main/resources/kiosksettings.properties')
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.deprecation = true
+    options.debug = true
+}
+
+task cleanAll(type: Delete) {
+    delete 'build', 'doc', 'JBother.jar', 'JBother.app'
+}
+
+task generateJavadoc(type: Javadoc) {
+    destinationDir = file("$buildDir/docs")
+    source = fileTree('src/main/java') {
+        include '**/*.java'
+    }
+    classpath = files('lib/smack.jar', 'lib/smackx.jar')
+    options.linkSource = true
+}
+
+launch4j {
+    mainClassName = application.mainClass
+    outputDir = "$buildDir/launch4j"
+    outfile = 'JBother.exe'
+    //icon = 'src/resources/images/icon.ico' // optional
+    jreMinVersion = '1.4.0'
+    dontWrapJar = false
+    jar = file("$buildDir/libs/JBother-1.0.jar").absolutePath
+}
+
+tasks.named("createExe").configure {
+    dependsOn(tasks.named("jar"))
+}
